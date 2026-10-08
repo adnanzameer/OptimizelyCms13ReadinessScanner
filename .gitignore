@@ -365,3 +365,7 @@ FodyWeavers.xsd
 /report.json
 /report.md
 /report.sarif
+
+# Local pack / tool-install output (dotnet pack -o ./nupkg, dotnet tool install --tool-path ./tooltest)
+/nupkg/
+/tooltest/

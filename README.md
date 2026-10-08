@@ -1,6 +1,16 @@
 # cms13-scan
 
+[![NuGet](https://img.shields.io/nuget/v/OptimizelyCms13ReadinessScanner?logo=nuget)](https://www.nuget.org/packages/OptimizelyCms13ReadinessScanner)
+[![Downloads](https://img.shields.io/nuget/dt/OptimizelyCms13ReadinessScanner)](https://www.nuget.org/packages/OptimizelyCms13ReadinessScanner)
+[![CI](https://github.com/adnanzameer/OptimizelyCms13ReadinessScanner/actions/workflows/ci.yml/badge.svg)](https://github.com/adnanzameer/OptimizelyCms13ReadinessScanner/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Pre-flight static analysis scanner for Optimizely CMS 12 codebases ahead of a CMS 13 upgrade.
+
+```bash
+dotnet tool install --global OptimizelyCms13ReadinessScanner
+cms13-scan ./MySite.sln
+```
 
 Point it at a solution, project, or directory and it reports the breaking changes, deprecated
 APIs, and configuration drift that will block or complicate a CMS 13 upgrade — before you start
@@ -26,24 +36,46 @@ the upgrade, not halfway through it.
 
 ## Install
 
-Not yet published to nuget.org. Build and install as a local .NET tool from source:
+`cms13-scan` is a [.NET tool](https://learn.microsoft.com/dotnet/core/tools/global-tools) published on
+[nuget.org](https://www.nuget.org/packages/OptimizelyCms13ReadinessScanner). You need the
+[.NET 8 SDK or newer](https://dotnet.microsoft.com/download).
 
-```powershell
-git clone <this repo>
-cd cms13-scan
-dotnet pack src/CmsUpgradeScanner -c Release -o ./nupkg
-dotnet tool install --global --add-source ./nupkg OptimizelyCms13ReadinessScanner
+```bash
+dotnet tool install --global OptimizelyCms13ReadinessScanner
+```
+
+Check it works:
+
+```bash
+cms13-scan --help
+```
+
+Update to the latest version, or remove it:
+
+```bash
+dotnet tool update --global OptimizelyCms13ReadinessScanner
+```
+
+```bash
+dotnet tool uninstall --global OptimizelyCms13ReadinessScanner
+```
+
+To install it for one repository only (so everyone on the team gets the same version), use a
+[local tool manifest](https://learn.microsoft.com/dotnet/core/tools/local-tools-how-to-use) and run it with `dotnet cms13-scan`:
+
+```bash
+dotnet new tool-manifest
+```
+
+```bash
+dotnet tool install OptimizelyCms13ReadinessScanner
 ```
 
 The tool targets .NET 8 but is configured with `RollForward=Major`, so it also starts on a machine
 that only has .NET 10 (tested: the packaged tool, including `--semantic`, on the .NET 10 runtime).
-Update an installed copy with `dotnet tool update --global --add-source ./nupkg OptimizelyCms13ReadinessScanner`.
+It analyses your solution as a separate process, so the solution being scanned can be on any framework.
 
-Or just run it directly without installing:
-
-```powershell
-dotnet run --project src/CmsUpgradeScanner -- <path> [options]
-```
+Want to build it yourself or contribute? See [Building and testing from source](#building-and-testing-from-source).
 
 ## Usage
 
@@ -68,6 +100,27 @@ directory.
 | `--cms-target-major` | CMS major version `--check-packages` tests against (default `13`) |
 | `--check-api` | Download the CMS 13 assemblies from the feeds in your `nuget.config` and report APIs your code uses that are gone or obsolete there (`OPT13-013`). Needs `--semantic` and a restored solution; downloads packages (see [API check](#api-check---check-api)) |
 | `--no-fail` | Always exit 0, even with blockers (default: exit 1 on any new blocker, for CI gating) |
+
+### Typical runs
+
+A quick first look. It only reads files and needs nothing else:
+
+```bash
+cms13-scan ./MySite.sln --exclude-tests
+```
+
+The accurate run. Restore first (`dotnet restore`), then add the semantic, package and API checks and
+save a report you can share:
+
+```bash
+cms13-scan ./MySite.sln --semantic --check-packages --check-api --exclude-tests --no-fail --output-markdown cms13-report.md
+```
+
+In CI, fail the build only on problems introduced since a saved baseline:
+
+```bash
+cms13-scan ./MySite.sln --baseline baseline.json --output-sarif cms13.sarif
+```
 
 Exit code is `1` when new blockers are found (`0` with `--no-fail`), `2` if the target path
 doesn't exist. "New" means "not already present in `--baseline`" when one is supplied, otherwise
@@ -351,16 +404,35 @@ failed publish is safe (`--skip-duplicate`).
 
 ## Building and testing from source
 
-```powershell
+```bash
+git clone https://github.com/adnanzameer/OptimizelyCms13ReadinessScanner.git
+cd OptimizelyCms13ReadinessScanner
 dotnet build CmsUpgradeScanner.sln
 dotnet test CmsUpgradeScanner.sln
+```
+
+Run the code you just built, without installing anything:
+
+```bash
+dotnet run --project src/CmsUpgradeScanner -c Release -- ./sample
+```
+
+Or pack it and install your build as the global tool (replacing the nuget.org one):
+
+```bash
+dotnet pack src/CmsUpgradeScanner -c Release -o ./nupkg
+```
+
+```bash
+dotnet tool install --global --add-source ./nupkg OptimizelyCms13ReadinessScanner
 ```
 
 `src/CmsUpgradeScanner` is the tool; `tests/CmsUpgradeScanner.Tests` is an xUnit suite covering
 every rule (including dedicated regression tests for the false-positive fixes below), the
 suppression/baseline/SARIF/rule-manifest machinery, and the readiness scorer. `sample/` is a small
-fixture solution the scanner is self-tested against — `report.md` / `report.json` / `report.sarif`
-at the repo root are its output, regenerated whenever the scanner's behavior changes.
+fixture solution the scanner is self-tested against; its expected output is the committed snapshot
+`tests/CmsUpgradeScanner.Tests/Snapshots/sample.expected.json`. Any `report.md` / `report.json` /
+`report.sarif` at the repo root are local scan output and are git-ignored.
 
 ### Design notes for contributors
 
