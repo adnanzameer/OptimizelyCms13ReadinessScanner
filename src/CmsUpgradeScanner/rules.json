@@ -1,0 +1,52 @@
+{
+  "rules": [
+    {
+      "id": "OPT13-001",
+      "title": "Unsupported Search & Navigation (Find) Packages",
+      "severity": "Blocker",
+      "kind": "ProjectPackageReference",
+      "packages": [ "EPiServer.Find", "EPiServer.Find.Cms", "EPiServer.Find.Framework", "EPiServer.Find.UI" ],
+      "message": "Project references unsupported package '{package}'. Search & Navigation is not supported in CMS 13.",
+      "fix": "Remove the package and install 'Optimizely.Graph.Cms.Query' and 'Optimizely.Graph.AspNetCore'."
+    },
+    {
+      "id": "OPT13-004",
+      "title": "Obsolete FilterAccess Query Methods",
+      "severity": "Warning",
+      "kind": "MemberAccessPattern",
+      "memberNamePrefix": "QueryDistinctAccess",
+      "expressionContains": "FilterAccess.",
+      "message": "Direct call to '{match}' detected. Distinct access query methods are deprecated in CMS 13.",
+      "fix": "Replace direct FilterAccess calls with IContentAccessEvaluator.HasAccess()."
+    },
+    {
+      "id": "OPT13-006",
+      "title": "Compiler Warnings As Errors Not Enabled",
+      "severity": "Info",
+      "kind": "ProjectFileMustContain",
+      "requiredText": "<TreatWarningsAsErrors>true</TreatWarningsAsErrors>",
+      "onlyIfOptimizelyProject": true,
+      "message": "<TreatWarningsAsErrors> is not set to true in this project file or in an imported Directory.Build.props. Obsolete CMS 12 APIs are easy to miss.",
+      "fix": "Enable <TreatWarningsAsErrors>true</TreatWarningsAsErrors> before updating CMS packages to surface all deprecations early."
+    },
+    {
+      "id": "OPT13-008",
+      "title": "Site Definition Usage (Application Model Review)",
+      "severity": "Warning",
+      "kind": "IdentifierUsage",
+      "identifiers": [ "ISiteDefinitionRepository", "SiteDefinitionRepository", "SiteDefinition" ],
+      "groupPerFile": true,
+      "message": "'{match}' is used ({count} occurrence(s) in this file). Site definitions are affected by the CMS 13 Application model; review this file (multi-site host mapping, custom repositories) against the new model. (unverified: syntax-only match)",
+      "fix": "Review the CMS 13 Application model documentation and migrate site-definition lookups and custom repositories accordingly."
+    },
+    {
+      "id": "OPT13-009",
+      "title": "Target Framework Not Ready For .NET 10",
+      "severity": "Info",
+      "kind": "ProjectTargetFramework",
+      "minimumDotNetMajor": 10,
+      "message": "Project targets '{framework}', which does not include .NET 10 or later.",
+      "fix": "Plan the framework upgrade to .NET 10 as part of the CMS 13 upgrade (the Upgrade Assistant can help with the framework change)."
+    }
+  ]
+}

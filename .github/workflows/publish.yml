@@ -1,0 +1,80 @@
+name: Publish
+
+# Publishes the tool to nuget.org when a version tag is pushed, e.g.:
+#   git tag v1.0.0
+#   git push origin v1.0.0
+# The package version comes from the tag, so it cannot drift from what was released.
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Create an environment named "nuget" (Settings > Environments) and add yourself as a required
+    # reviewer to get a manual approval gate before anything is pushed; the API key can live there
+    # too, scoped to this environment only.
+    environment: nuget
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the version from the tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          # Plain semver, optionally with a pre-release suffix (1.2.3 or 1.2.3-beta.1).
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Tag '$TAG' is not a version like v1.2.3" >&2
+            exit 1
+          fi
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore CmsUpgradeScanner.sln
+
+      - name: Build
+        run: dotnet build CmsUpgradeScanner.sln --no-restore --configuration Release -p:Version=${{ steps.version.outputs.value }}
+
+      # Never publish a build whose tests fail.
+      - name: Test
+        run: dotnet test CmsUpgradeScanner.sln --no-build --configuration Release
+
+      - name: Pack
+        run: >
+          dotnet pack src/CmsUpgradeScanner/CmsUpgradeScanner.csproj
+          --no-build --configuration Release
+          -p:Version=${{ steps.version.outputs.value }}
+          --output ./nupkg
+
+      # Install the exact file that is about to be published and make sure it starts.
+      - name: Smoke-test the package
+        run: |
+          dotnet tool install --tool-path ./tool --add-source ./nupkg --version ${{ steps.version.outputs.value }} OptimizelyCms13ReadinessScanner
+          ./tool/cms13-scan --help
+
+      - name: Keep the package as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: nupkg/*.nupkg
+
+      - name: Push to nuget.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "NUGET_API_KEY secret is not set; add it under Settings > Secrets (or the 'nuget' environment)." >&2
+            exit 1
+          fi
+          # --skip-duplicate makes re-running a failed workflow safe.
+          dotnet nuget push ./nupkg/*.nupkg --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate

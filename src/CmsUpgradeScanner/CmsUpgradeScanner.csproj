@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>cms13-scan</AssemblyName>
+    <RootNamespace>OptimizelyCms13ReadinessScanner</RootNamespace>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>cms13-scan</ToolCommandName>
+    <PackageId>OptimizelyCms13ReadinessScanner</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Adnan Zameer</Authors>
+    <Description>Pre-flight static analysis scanner for auditing Optimizely CMS 12 codebases ahead of CMS 13 upgrades.</Description>
+    <PackageTags>optimizely;episerver;cms;upgrade;roslyn;analyzer;dotnet-tool</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/adnanzameer/CmsUpgradeScanner</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/adnanzameer/CmsUpgradeScanner</PackageProjectUrl>
+    <Copyright>Copyright (c) 2026 Adnan Zameer</Copyright>
+    <!-- Built for .NET 8 but runs on whichever newer runtime is installed: CMS 13 solutions are on
+         .NET 10, so a machine that only has .NET 10 must still be able to start the tool. -->
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.11.0" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.7.8" />
+    <PackageReference Include="NuGet.Protocol" Version="7.9.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Built-in data-driven rule manifest (RuleManifestLoader / DataDrivenRule): embedded so the
+         tool always has it regardless of how it was installed, while still being plain JSON that
+         can be inspected, edited, or overridden at runtime without recompiling. -->
+    <EmbeddedResource Include="rules.json" />
+  </ItemGroup>
+
+</Project>

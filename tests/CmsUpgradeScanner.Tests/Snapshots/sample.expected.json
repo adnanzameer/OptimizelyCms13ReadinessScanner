@@ -1,0 +1,130 @@
+{
+  "TargetPath": "\u003CSAMPLE_DIR\u003E",
+  "ScannedAtUtc": "0001-01-01T00:00:00",
+  "TotalFilesScanned": 3,
+  "TotalCsharpFiles": 1,
+  "TotalProjectFiles": 1,
+  "BlockersCount": 4,
+  "WarningsCount": 5,
+  "InfoCount": 2,
+  "ReadinessScore": 12,
+  "Findings": [
+    {
+      "RuleId": "OPT13-011",
+      "RuleTitle": "EPiServer.Find Namespace Imported",
+      "Severity": "Blocker",
+      "Message": "File imports \u0027EPiServer.Find\u0027. The Search \u0026 Navigation (Find) API is not available in CMS 13, so the code in this file that uses it must move to Optimizely Graph.",
+      "FilePath": "Web/Models/Legacy.cs",
+      "LineNumber": 1,
+      "SuggestedFix": "Replace the Find queries, filters and indexing conventions in this file with Optimizely Graph equivalents, then remove the using directive(s).",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-002",
+      "RuleTitle": "Synchronous Find Execution Calls",
+      "Severity": "Blocker",
+      "Message": "Synchronous search execution call \u0027.GetContentResult()\u0027 detected. Graph queries in CMS 13 require async execution.",
+      "FilePath": "Web/Models/Legacy.cs",
+      "LineNumber": 10,
+      "SuggestedFix": "Rewrite the query using IGraphContentClient and await .GetAsContentAsync().",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-002",
+      "RuleTitle": "Synchronous Find Execution Calls",
+      "Severity": "Blocker",
+      "Message": "Static \u0027SearchClient.Instance\u0027 usage detected. CMS 13 requires dependency-injected IGraphContentClient.",
+      "FilePath": "Web/Models/Legacy.cs",
+      "LineNumber": 10,
+      "SuggestedFix": "Inject IGraphContentClient via the constructor and remove the static SearchClient reference.",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-001",
+      "RuleTitle": "Unsupported Search \u0026 Navigation (Find) Packages",
+      "Severity": "Blocker",
+      "Message": "Project references unsupported package \u0027EPiServer.Find.Cms\u0027. Search \u0026 Navigation is not supported in CMS 13.",
+      "FilePath": "Web/Web.csproj",
+      "LineNumber": 5,
+      "SuggestedFix": "Remove the package and install \u0027Optimizely.Graph.Cms.Query\u0027 and \u0027Optimizely.Graph.AspNetCore\u0027.",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-005",
+      "RuleTitle": "Legacy Find and Hardcoded Graph Configuration",
+      "Severity": "Warning",
+      "Message": "Legacy \u0027EPiServer:Find\u0027 configuration section detected.",
+      "FilePath": "Web/appsettings.json",
+      "LineNumber": 3,
+      "SuggestedFix": "Replace with the Optimizely Graph configuration section (GatewayAddress, AppKey, Secret, SingleKey).",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-005",
+      "RuleTitle": "Legacy Find and Hardcoded Graph Configuration",
+      "Severity": "Warning",
+      "Message": "Hardcoded Graph \u0027AppKey\u0027 value detected in configuration file.",
+      "FilePath": "Web/appsettings.json",
+      "LineNumber": 11,
+      "SuggestedFix": "Supply Graph credentials via environment variables or a secret store (e.g. DXP app settings) so keys can be rotated without a deploy, and rotate any key committed to source control.",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-005",
+      "RuleTitle": "Legacy Find and Hardcoded Graph Configuration",
+      "Severity": "Warning",
+      "Message": "Hardcoded Graph \u0027SingleKey\u0027 value detected in configuration file.",
+      "FilePath": "Web/appsettings.json",
+      "LineNumber": 13,
+      "SuggestedFix": "Supply Graph credentials via environment variables or a secret store (e.g. DXP app settings) so keys can be rotated without a deploy, and rotate any key committed to source control.",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-003",
+      "RuleTitle": "Obsolete Property ContentArea.FilteredItems",
+      "Severity": "Warning",
+      "Message": "Access to \u0027ContentArea.FilteredItems\u0027 detected. In CMS 13 this property is marked [Obsolete(error: true)], so any use fails to compile. (unverified: syntax-only match; re-run with --semantic to confirm)",
+      "FilePath": "Web/Models/Legacy.cs",
+      "LineNumber": 9,
+      "SuggestedFix": "Use ContentArea.Items to get all items, render with HtmlHelpers or TagHelpers, or depend on IEnumerable\u003CIContentAreaItemsRenderingFilter\u003E to filter by the current user (Optimizely\u0027s own guidance on the obsolete member).",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-004",
+      "RuleTitle": "Obsolete FilterAccess Query Methods",
+      "Severity": "Warning",
+      "Message": "Direct call to \u0027FilterAccess.QueryDistinctAccessEdit\u0027 detected. Distinct access query methods are deprecated in CMS 13.",
+      "FilePath": "Web/Models/Legacy.cs",
+      "LineNumber": 11,
+      "SuggestedFix": "Replace direct FilterAccess calls with IContentAccessEvaluator.HasAccess().",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-006",
+      "RuleTitle": "Compiler Warnings As Errors Not Enabled",
+      "Severity": "Info",
+      "Message": "\u003CTreatWarningsAsErrors\u003E is not set to true in this project file or in an imported Directory.Build.props. Obsolete CMS 12 APIs are easy to miss.",
+      "FilePath": "Web/Web.csproj",
+      "LineNumber": 1,
+      "SuggestedFix": "Enable \u003CTreatWarningsAsErrors\u003Etrue\u003C/TreatWarningsAsErrors\u003E before updating CMS packages to surface all deprecations early.",
+      "IsBaseline": null
+    },
+    {
+      "RuleId": "OPT13-009",
+      "RuleTitle": "Target Framework Not Ready For .NET 10",
+      "Severity": "Info",
+      "Message": "Project targets \u0027net8.0\u0027, which does not include .NET 10 or later.",
+      "FilePath": "Web/Web.csproj",
+      "LineNumber": 2,
+      "SuggestedFix": "Plan the framework upgrade to .NET 10 as part of the CMS 13 upgrade (the Upgrade Assistant can help with the framework change).",
+      "IsBaseline": null
+    }
+  ],
+  "SuppressedFindings": [],
+  "NewBlockersCount": 4,
+  "NewWarningsCount": 5,
+  "NewInfoCount": 2,
+  "BaselineApplied": false,
+  "PackageCompatibilityChecked": false,
+  "PackageCompatibilityTargetMajor": null
+}

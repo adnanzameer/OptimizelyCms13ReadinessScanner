@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+# Least privilege: read the code, and let the SARIF upload step write code-scanning results.
+# upload-sarif also reads the workflow run (actions: read) to attach telemetry and fingerprints.
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore CmsUpgradeScanner.sln
+
+      - name: Build
+        run: dotnet build CmsUpgradeScanner.sln --no-restore --configuration Release
+
+      - name: Test
+        run: >
+          dotnet test CmsUpgradeScanner.sln --no-build --configuration Release
+          --logger "trx;LogFileName=test-results.trx"
+
+      # Proves the tool still packs (tool manifest, bundled dependencies, README) and that the
+      # packed tool installs and starts, which the unit tests cannot catch.
+      - name: Pack and smoke-test the installed tool
+        run: |
+          dotnet pack src/CmsUpgradeScanner/CmsUpgradeScanner.csproj --no-build --configuration Release --output ./nupkg
+          dotnet tool install --tool-path ./tool --add-source ./nupkg OptimizelyCms13ReadinessScanner
+          ./tool/cms13-scan --help
+
+      - name: Upload the tool package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: nupkg/*.nupkg
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/test-results.trx'
+
+      # sample/ is a fixture that deliberately contains CMS 13 breaking changes, so this run is
+      # expected to find blockers - --no-fail keeps that expected result from failing the build.
+      # Its purpose is to prove the tool itself still runs end-to-end as a real CLI process and to
+      # exercise SARIF upload, not to gate on the fixture's findings.
+      - name: Self-scan the sample fixture (smoke test)
+        if: always()
+        run: >
+          dotnet run --project src/CmsUpgradeScanner/CmsUpgradeScanner.csproj
+          --no-build --configuration Release --
+          sample
+          --output-sarif cms13-scan.sarif
+          --output-markdown cms13-scan-report.md
+          --no-fail
+
+      # Pull requests from forks get a read-only token whatever `permissions` says, so the upload
+      # would always fail there; skip it rather than turn every fork PR red.
+      # NOTE: code scanning on a PRIVATE repository needs GitHub Advanced Security enabled
+      # (Settings > Code security); without it this step fails with "Resource not accessible".
+      - name: Upload SARIF to code scanning
+        if: always() && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: cms13-scan.sarif
+
+      - name: Upload Markdown report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cms13-scan-report
+          path: cms13-scan-report.md
