@@ -16,6 +16,7 @@
     <Description>Pre-flight static analysis scanner for auditing Optimizely CMS 12 codebases ahead of CMS 13 upgrades.</Description>
     <PackageTags>optimizely;episerver;cms;upgrade;roslyn;analyzer;dotnet-tool</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/adnanzameer/OptimizelyCms13ReadinessScanner</RepositoryUrl>
@@ -28,6 +29,7 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
