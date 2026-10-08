@@ -18,8 +18,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/adnanzameer/CmsUpgradeScanner</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/adnanzameer/CmsUpgradeScanner</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/adnanzameer/OptimizelyCms13ReadinessScanner</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/adnanzameer/OptimizelyCms13ReadinessScanner</PackageProjectUrl>
     <Copyright>Copyright (c) 2026 Adnan Zameer</Copyright>
     <!-- Built for .NET 8 but runs on whichever newer runtime is installed: CMS 13 solutions are on
          .NET 10, so a machine that only has .NET 10 must still be able to start the tool. -->
