@@ -1,4 +1,4 @@
-# cms13-scan
+# Optimizely CMS 13 Upgrade Readiness Scanner (cms13-scan)
 
 [![NuGet](https://img.shields.io/nuget/v/OptimizelyCms13ReadinessScanner?logo=nuget)](https://www.nuget.org/packages/OptimizelyCms13ReadinessScanner)
 [![Downloads](https://img.shields.io/nuget/dt/OptimizelyCms13ReadinessScanner)](https://www.nuget.org/packages/OptimizelyCms13ReadinessScanner)
